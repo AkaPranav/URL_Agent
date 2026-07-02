@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+requests
+cryptography
+pydantic
+environs
+jinja2
+reportlab
+streamlit
