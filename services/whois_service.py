@@ -1,9 +1,4 @@
-"""RDAP-based domain registration lookup service.
-
-This module replaces raw WHOIS lookups with RDAP queries against the public
-rdap.org endpoint. It keeps the original service class and return structure so
-the scoring engine and API layer can continue using it without changes.
-"""
+# RDAP-based domain registration lookup service.
 
 from __future__ import annotations
 

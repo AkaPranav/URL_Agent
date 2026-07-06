@@ -1,7 +1,5 @@
 
-"""
-URL validation utilities.
-"""
+# URL validation utilities.
 
 from urllib.parse import urlparse
 
