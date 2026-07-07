@@ -24,15 +24,18 @@ source .venv/bin/activate
 uv sync
 ```
 
-Create `.env`:
+Create `.env` from the example file and replace the values:
 
-```ini
-VIRUS_TOTAL_API_KEY="your_virus_total_api_key"
-GOOGLE_SAFE_BROWSING_API_KEY="your_google_safe_browsing_api_key"
+```bash
+cp .env.example .env
 ```
 
-The app still runs without API keys, but those sources are marked unavailable
-and receive zero score.
+`APP_API_KEY` protects the API scan endpoints. The app still runs without
+VirusTotal or Google Safe Browsing keys, but those sources are marked
+unavailable and receive zero score.
+
+If you edit `.env`, restart `uvicorn` or Streamlit so the running process picks
+up the updated values.
 
 ## Run API
 
@@ -41,13 +44,88 @@ source .venv/bin/activate
 uvicorn app:app --reload
 ```
 
+Health check:
+
+```bash
+curl http://localhost:8000/health
+```
+
 Scan a URL:
 
 ```bash
 curl -X POST http://localhost:8000/scan \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: replace-with-a-long-random-secret" \
   -d '{"url": "https://example.com"}'
 ```
+
+The `/scan` endpoint returns JSON-only security evidence and score data.
+HTML and PDF output are not included in this response.
+
+Generate only the HTML report:
+
+```bash
+curl -X POST http://localhost:8000/scan/html \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: replace-with-a-long-random-secret" \
+  -d '{"url": "https://example.com"}'
+```
+
+## Test With Postman
+
+1. Start the API:
+
+   ```bash
+   source .venv/bin/activate
+   uvicorn app:app --reload
+   ```
+
+2. In Postman, create a new request.
+3. Set the method to `POST`.
+4. Set the URL to `http://localhost:8000/scan`.
+5. Open the `Headers` tab and add:
+
+   ```text
+   Key: X-API-Key
+   Value: replace-with-a-long-random-secret
+   ```
+
+6. Open the `Body` tab.
+7. Select `raw`.
+8. Select `JSON` from the body type dropdown.
+9. Paste this body:
+
+   ```json
+   {
+     "url": "https://example.com"
+   }
+   ```
+
+10. Click `Send`.
+
+Expected results:
+
+- `200 OK`: API key is correct and the response body contains the scan JSON.
+- `401 Unauthorized`: `X-API-Key` is missing or does not match `.env`.
+- `503 Service Unavailable`: `APP_API_KEY` is not configured in `.env`.
+- `400 Bad Request`: the submitted URL is invalid.
+
+## Test In Swagger UI
+
+1. Open `http://localhost:8000/docs`.
+2. Click `Authorize`.
+3. Enter your `APP_API_KEY` value in the `X-API-Key` field.
+4. Expand `POST /scan`.
+5. Click `Try it out`.
+6. Send this body:
+
+   ```json
+   {
+     "url": "https://example.com"
+   }
+   ```
+
+If you skip the `Authorize` step, Swagger will return `401 Unauthorized`.
 
 ## Run Streamlit UI
 
