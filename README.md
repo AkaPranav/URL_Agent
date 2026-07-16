@@ -1,57 +1,106 @@
-# URL Reputation Agent
+<div align="center">
+  <h1>🛡️ URL Reputation Agent</h1>
+  <p>
+    <strong>An advanced, multi-source intelligence tool to evaluate URL trustworthiness and detect malicious web resources.</strong>
+  </p>
 
-URL Reputation Agent analyzes URL trustworthiness using VirusTotal, Google Safe
-Browsing, WHOIS, and SSL certificate evidence. It returns a weighted score from
-0 to 100, a security decision, and downloadable JSON, HTML, and PDF reports.
+  <p>
+    <a href="https://python.org"><img src="https://img.shields.io/badge/Python-3.12-blue.svg?style=for-the-badge&logo=python" alt="Python Version"></a>
+    <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/FastAPI-009688.svg?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI"></a>
+    <a href="https://streamlit.io/"><img src="https://img.shields.io/badge/Streamlit-FF4B4B.svg?style=for-the-badge&logo=streamlit&logoColor=white" alt="Streamlit"></a>
+  </p>
+</div>
 
-## Scoring
+---
 
-- VirusTotal: 40 points
-- Google Safe Browsing: 30 points
-- WHOIS domain age: 15 points
-- SSL certificate validity: 15 points
+## 📖 Overview
 
-Decisions:
+**URL Reputation Agent** is a powerful cybersecurity utility designed to automatically analyze URL trustworthiness. Instead of relying on a single data source, it intelligently combines signals from leading threat intelligence providers, domain registration data, and SSL certificate evidence to calculate a weighted security score (0-100) and provide actionable security decisions.
 
-- `ALLOW`: score >= 85
-- `MANUAL REVIEW`: 60 <= score < 85, or incomplete evidence with an otherwise acceptable score
-- `BLOCK`: score < 60
+Whether you're investigating phishing attempts, analyzing malware delivery networks, or simply verifying a suspicious link, URL Reputation Agent gives you the comprehensive insights you need through a clean API and an intuitive Web UI.
 
-## Setup
+## ✨ Features
+
+- **🌐 Multi-Source Threat Intelligence**: Integrates seamlessly with VirusTotal and Google Safe Browsing.
+- **🔍 Domain & SSL Forensics**: Analyzes WHOIS domain age via RDAP and verifies SSL certificate validity.
+- **⚖️ Weighted Risk Scoring**: Computes an intelligent score evaluating all gathered evidence:
+  - `VirusTotal`: 40%
+  - `Google Safe Browsing`: 30%
+  - `WHOIS Age`: 15%
+  - `SSL Certificate`: 15%
+- **🚦 Smart Decision Engine**: Outputs clear actions: `ALLOW`, `MANUAL REVIEW`, or `BLOCK`.
+- **📊 Exportable Reports**: Instantly generates rich downloadable PDF, HTML, and JSON reports.
+- **🎨 Interactive Web UI**: Built with Streamlit for a smooth, zero-config user experience.
+- **🔌 Robust REST API**: Fast and scalable API powered by FastAPI for seamless system integration.
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+Ensure you have Python 3.12+ and `uv` installed on your system.
+
+### Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/yourusername/url-reputation-agent.git
+   cd url-reputation-agent
+   ```
+
+2. **Install dependencies using `uv`:**
+   ```bash
+   uv venv
+   source .venv/bin/activate
+   uv sync
+   ```
+
+3. **Configure Environment Variables:**
+   ```bash
+   cp .env.example .env
+   ```
+   Open the `.env` file and add your API keys:
+   - `VIRUS_TOTAL_API_KEY`: Get one from [VirusTotal](https://www.virustotal.com/)
+   - `GOOGLE_SAFE_BROWSING_API_KEY`: Get one from [Google Cloud](https://console.cloud.google.com/)
+   - `APP_API_KEY`: Set a secure random string to protect your API endpoints.
+   
+   *(Note: The application is designed to degrade gracefully. If a key is missing, that module will safely return a 0-score without crashing the application.)*
+
+## 💻 Usage
+
+You can use the URL Reputation Agent in two ways: via the sleek Web UI or the Developer API.
+
+### Option 1: Streamlit Web UI
+
+Run the interactive web interface:
 
 ```bash
 source .venv/bin/activate
-uv sync
+streamlit run streamlit_app.py
 ```
+*Access the dashboard at `http://localhost:8501`*
 
-Create `.env` from the example file and replace the values:
+### Option 2: REST API
 
-```bash
-cp .env.example .env
-```
-
-`APP_API_KEY` protects the API scan endpoints. The app still runs without
-VirusTotal or Google Safe Browsing keys, but those sources are marked
-unavailable and receive zero score.
-
-If you edit `.env`, restart `uvicorn` or Streamlit so the running process picks
-up the updated values.
-
-## Run API
+Start the FastAPI server:
 
 ```bash
 source .venv/bin/activate
 uvicorn app:app --reload
 ```
+*API will be available at `http://localhost:8000`*
 
-Health check:
+#### API Documentation
+Interactive API docs are auto-generated. Visit `http://localhost:8000/docs` (Swagger UI) to explore endpoints and test requests right from your browser. 
+*(Remember to Authorize with your `APP_API_KEY` first!)*
 
+#### API Examples
+
+**Health Check:**
 ```bash
 curl http://localhost:8000/health
 ```
 
-Scan a URL:
-
+**Scan a URL:**
 ```bash
 curl -X POST http://localhost:8000/scan \
   -H "Content-Type: application/json" \
@@ -59,104 +108,41 @@ curl -X POST http://localhost:8000/scan \
   -d '{"url": "https://example.com"}'
 ```
 
-The `/scan` endpoint returns JSON-only security evidence and score data.
-HTML and PDF output are not included in this response.
-
-Generate only the HTML report:
-
+**Generate HTML Report:**
 ```bash
 curl -X POST http://localhost:8000/scan/html \
   -H "Content-Type: application/json" \
   -H "X-API-Key: replace-with-a-long-random-secret" \
-  -d '{"url": "https://example.com"}'
+  -d '{"url": "https://example.com"}' > report.html
 ```
 
-## Test With Postman
-
-1. Start the API:
-
-   ```bash
-   source .venv/bin/activate
-   uvicorn app:app --reload
-   ```
-
-2. In Postman, create a new request.
-3. Set the method to `POST`.
-4. Set the URL to `http://localhost:8000/scan`.
-5. Open the `Headers` tab and add:
-
-   ```text
-   Key: X-API-Key
-   Value: replace-with-a-long-random-secret
-   ```
-
-6. Open the `Body` tab.
-7. Select `raw`.
-8. Select `JSON` from the body type dropdown.
-9. Paste this body:
-
-   ```json
-   {
-     "url": "https://example.com"
-   }
-   ```
-
-10. Click `Send`.
-
-Expected results:
-
-- `200 OK`: API key is correct and the response body contains the scan JSON.
-- `401 Unauthorized`: `X-API-Key` is missing or does not match `.env`.
-- `503 Service Unavailable`: `APP_API_KEY` is not configured in `.env`.
-- `400 Bad Request`: the submitted URL is invalid.
-
-## Test In Swagger UI
-
-1. Open `http://localhost:8000/docs`.
-2. Click `Authorize`.
-3. Enter your `APP_API_KEY` value in the `X-API-Key` field.
-4. Expand `POST /scan`.
-5. Click `Try it out`.
-6. Send this body:
-
-   ```json
-   {
-     "url": "https://example.com"
-   }
-   ```
-
-If you skip the `Authorize` step, Swagger will return `401 Unauthorized`.
-
-## Run Streamlit UI
-
-```bash
-source .venv/bin/activate
-streamlit run streamlit_app.py
-```
-
-Then open `http://localhost:8501`.
-
-## Structure
+## 🏗️ Architecture
 
 ```text
-.
-|-- app.py
-|-- config.py
-|-- requirements.txt
-|-- requirement.txt
-|-- streamlit_app.py
-|-- models/
-|   `-- report.py
-|-- reports/
-|   |-- html_report.py
-|   `-- pdf_report.py
-|-- services/
-|   |-- reputation_agent.py
-|   |-- virustotal.py
-|   |-- safe_browsing.py
-|   |-- whois_service.py
-|   |-- ssl_checker.py
-|   `-- scoring.py
-`-- utils/
-    `-- validators.py
+📦 url-reputation-agent
+ ┣ 📂 models/            # Pydantic data schemas
+ ┣ 📂 reports/           # HTML and PDF report generators
+ ┣ 📂 services/          # Core scanning engines (VirusTotal, RDAP, SSL, Scoring)
+ ┣ 📂 utils/             # Validation helpers
+ ┣ 📜 app.py             # FastAPI entrypoint
+ ┣ 📜 config.py          # Environment configuration loader
+ ┣ 📜 streamlit_app.py   # Web UI entrypoint
+ ┗ 📜 pyproject.toml     # Project dependencies
 ```
+
+## 🛡️ Security & Privacy
+
+We take data hygiene seriously. This project is configured to automatically ignore sensitive data (like `.env` files, local logs, and generated reports) to prevent accidental credential leaks to version control. 
+
+## 🤝 Contributing
+
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+*Built with ❤️ for better web security.*

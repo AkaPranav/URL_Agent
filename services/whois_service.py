@@ -13,7 +13,7 @@ class WhoisService:
     """Retrieve domain registration metadata using public RDAP."""
 
     BASE_URL = "https://rdap.org/domain"
-    TIMEOUT_SECONDS = 30
+    TIMEOUT_SECONDS = 60
 
     @staticmethod
     def _extract_domain(url: str) -> str:
